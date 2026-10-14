@@ -1,2 +1,2 @@
 # ELI
-The start of ELI project
+The start of the ELI project
