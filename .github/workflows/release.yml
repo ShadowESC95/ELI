@@ -42,36 +42,36 @@ jobs:
       - name: pip package (wheel and source)
         run: python -m build --outdir dist .
 
-      - name: Speech model (packed in, so voice works offline)
+      - name: Speech model and language model (packed in, so the app works on its own)
         run: |
           python -c "from huggingface_hub import snapshot_download; snapshot_download('Systran/faster-whisper-base', local_dir='build/whisper-base')"
           echo "d01c3014881c9c6f3133c182f3d2887eb6ca1c789a7538c5c007196857a0a6a9  build/whisper-base/model.bin" | sha256sum -c
           rm -rf build/whisper-base/.cache
+          mkdir -p build/models
+          curl -fL --retry 3 -o "build/models/$MODEL_FILE" "$MODEL_URL"
+          echo "$MODEL_SHA256  build/models/$MODEL_FILE" | sha256sum -c
 
       - name: Build
         run: |
           pyinstaller --noconfirm --clean --distpath dist --workpath build/pyinstaller packaging/eli.spec
           python packaging/trim_bundle.py dist/ELI
 
-      - name: Language model for the release (Qwen2.5 1.5B Instruct, Apache 2.0)
-        run: |
-          curl -fL --retry 3 -o "dist/$MODEL_FILE" "$MODEL_URL"
-          echo "$MODEL_SHA256  dist/$MODEL_FILE" | sha256sum -c
-
-      - name: Selftest (offscreen with the model and speech, then on a real X display)
+      - name: Selftest with the app read-only, as it is inside the AppImage (offscreen, then a real X display)
         run: |
           espeak-ng -w build/speech.wav "open the calculator and play some music"
-          ELI_GGUF_MODEL_PATH="$PWD/dist/$MODEL_FILE" ELI_SELFTEST_WAV="$PWD/build/speech.wav" dist/ELI/ELI --selftest
+          chmod -R a-w dist/ELI
+          ELI_AI_SELFTEST_WAV="$PWD/build/speech.wav" dist/ELI/ELI --selftest
           xvfb-run -a env QT_QPA_PLATFORM=xcb dist/ELI/ELI --selftest
+          chmod -R u+w dist/ELI
 
-      - name: AppImage (and it finds the model saved beside it)
+      - name: AppImage
         run: |
           bash packaging/build_appimage.sh "${GITHUB_REF_NAME#v}"
-          out="$(ELI_SELFTEST_WAV="$PWD/build/speech.wav" ./dist/ELI-*.AppImage --appimage-extract-and-run --selftest 2>&1)" \
-            || { echo "$out"; exit 1; }
-          echo "$out"
-          echo "$out" | grep -q -i "$MODEL_FILE: .*paris" || { echo "::error::the AppImage did not find the model beside it"; exit 1; }
-          cd dist && sha256sum ELI-*.AppImage "$MODEL_FILE" *.whl *.tar.gz > SHA256SUMS.txt && cat SHA256SUMS.txt
+          ELI_AI_SELFTEST_WAV="$PWD/build/speech.wav" ./dist/ELI-*.AppImage --appimage-extract-and-run --selftest
+          size=$(stat -c %s dist/ELI-*.AppImage)
+          echo "AppImage: $((size / 1048576)) MB"
+          [ "$size" -lt 2000000000 ] || { echo "::error::the AppImage is over GitHub's 2 GB limit for a release file"; exit 1; }
+          cd dist && sha256sum ELI-*.AppImage *.whl *.tar.gz > SHA256SUMS.txt && cat SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
@@ -90,4 +90,4 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" --title "ELI ${GITHUB_REF_NAME#v}" \
             --notes-file packaging/release_notes.md \
-            dist/ELI-*.AppImage "dist/$MODEL_FILE" dist/*.whl dist/*.tar.gz dist/SHA256SUMS.txt
+            dist/ELI-*.AppImage dist/*.whl dist/*.tar.gz dist/SHA256SUMS.txt

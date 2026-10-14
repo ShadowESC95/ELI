@@ -20,11 +20,10 @@ class DBPaths:
     agent_db: Path
 
 def _artifacts_dir_fallback() -> Path:
-    # Avoid importing PATHS here to prevent import cycles.
-    # Assume typical layout: src/eli/brain/db_paths.py -> src/eli/artifacts
-    here = Path(__file__).resolve()
-    eli_root = here.parents[1]  # .../src/eli
-    return eli_root / "artifacts"
+    # ELI's data folder (never its own code folder, which is read-only when packaged).
+    # paths.py imports nothing from eli, so importing it here makes no cycle.
+    from eli.brain.paths import get_paths
+    return Path(get_paths().data_dir)
 
 def resolve_db_paths() -> DBPaths:
     artifacts = _artifacts_dir_fallback()

@@ -28,11 +28,9 @@ def _resolve_project_artifacts_dir() -> Path:
     v = os.environ.get("ELI_ARTIFACTS")
     if v:
         return Path(v).expanduser().resolve()
-    # Fall back to package-root derived artifacts folder
-    here = Path(__file__).resolve()
-    # .../src/eli/brain/memory.py -> parents[2] = .../src/eli
-    eli_root = here.parents[2]
-    return (eli_root / "artifacts").resolve()
+    # Otherwise ELI's data folder (never its own code folder, which is read-only when packaged)
+    from eli.brain.paths import get_paths
+    return Path(get_paths().data_dir).resolve()
 
 
 def resolve_db_paths() -> DBPaths:

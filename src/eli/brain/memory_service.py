@@ -7,7 +7,9 @@ from typing import Optional
 
 from eli.brain.memory import get_memory
 
-_SESSION_FILE = Path.home() / ".eli_session_id"
+from eli.brain.paths import get_paths
+
+_SESSION_FILE = Path(get_paths().data_dir) / "session_id"
 
 
 def get_or_create_session_id() -> str:
@@ -17,6 +19,7 @@ def get_or_create_session_id() -> str:
             if sid:
                 return sid
         sid = f"session-{uuid.uuid4()}"
+        _SESSION_FILE.parent.mkdir(parents=True, exist_ok=True)
         _SESSION_FILE.write_text(sid, encoding="utf-8")
         return sid
     except Exception:

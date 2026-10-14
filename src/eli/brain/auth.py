@@ -4,7 +4,9 @@ import hashlib
 import secrets
 from pathlib import Path
 
-DB_PATH = Path.home() / ".config/eli/users.db"
+from eli.brain.paths import get_paths
+
+DB_PATH = Path(get_paths().config_dir) / "users.db"
 
 class AuthManager:
     def __init__(self):

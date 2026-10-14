@@ -364,7 +364,7 @@ class SelfImproveDockWidget(QWidget):
     def open_vscode(self):
         import subprocess
         try:
-            root = os.environ.get("ELI_ROOT", os.getcwd())
+            root = str(Path(__file__).resolve().parents[1])  # ELI's own code
             subprocess.Popen(["code",
                 os.path.join(root, "tools", "executor_enhanced.py"),
                 os.path.join(root, "tools", "router_enhanced.py")])
@@ -2019,8 +2019,7 @@ class ELIEntropicGUI(QMainWindow):
         except Exception:
             pass
         if self.conversation_log:
-            conv_dir = Path(os.environ.get('ELI_CONVERSATIONS_DIR', 
-                           str(Path(os.environ.get('ELI_ROOT', str(Path(__file__).parent.parent))) / 'artifacts' / 'conversations'))).resolve()
+            conv_dir = Path(os.environ.get('ELI_CONVERSATIONS_DIR') or PATHS.conversations_dir).resolve()
             conv_dir.mkdir(parents=True, exist_ok=True)
             log_file = str(conv_dir / f"eli_conversation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
             try:

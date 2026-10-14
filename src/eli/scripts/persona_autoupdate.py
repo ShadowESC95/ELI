@@ -11,7 +11,7 @@ from eli.brain.paths import PATHS
 ROOT = Path(__file__).resolve().parents[1]
 from eli.brain.persona import persona_file
 
-PERSONA = persona_file(for_writing=True)  # this user's copy, not the one ELI ships with
+PERSONA = persona_file()  # the persona in use; changes go to this user's copy, made only when one is saved
 NOTES = Path(PATHS.notes_dir)
 LOGS = Path(PATHS.log_dir)
 
@@ -34,7 +34,7 @@ def load_persona() -> str:
     return PERSONA.read_text(encoding="utf-8") if PERSONA.exists() else ""
 
 def save_persona(text: str) -> None:
-    PERSONA.write_text(text, encoding="utf-8")
+    persona_file(for_writing=True).write_text(text, encoding="utf-8")
 
 def _normalize_pref(line: str) -> str:
     # Normalize spacing/case a bit, keep user intent.
@@ -102,7 +102,7 @@ def main():
         return
 
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup = PERSONA.with_suffix(f".txt.bak.{ts}")
+    backup = persona_file(for_writing=True).with_suffix(f".txt.bak.{ts}")
     if current:
         backup.write_text(current, encoding="utf-8")
 

@@ -10,8 +10,9 @@ try:
 except Exception:  # pragma: no cover
     user_data_dir = user_config_dir = user_cache_dir = user_log_dir = None  # type: ignore
 
-APP_NAME = "eli"
-APP_AUTHOR = "eli"
+# ELI's own folder name: ~/.local/share/eli-ai, ~/.config/eli-ai (later ELI versions use other names)
+APP_NAME = "eli-ai"
+APP_AUTHOR = "eli-ai"
 
 
 def _env_path(key: str) -> Optional[Path]:
@@ -89,6 +90,10 @@ class EliPaths:
                 beside = []
             if beside:
                 return beside[0]
+        # The model the app ships with
+        shipped = _env_path("ELI_DEFAULT_MODEL")
+        if shipped and shipped.exists():
+            return shipped
         return self.models_dir / "model.gguf"
 
 

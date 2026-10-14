@@ -13,20 +13,15 @@ try:
 except Exception:
     np = None  # type: ignore
 
-def _eli_root() -> Path:
-    # Prefer explicit ELI_ROOT, else repo root (parent of brain/)
-    return Path(os.environ.get("ELI_ROOT", Path(__file__).resolve().parents[1])).resolve()
+def _default_db() -> Path:
+    # Its own file in ELI's data folder: this module's `memories` table has different columns
+    # from the main memory's (brain/memory.py), so the two cannot share a database.
+    from eli.brain.paths import get_paths
+    return Path(get_paths().data_dir) / "memory_index.sqlite3"
 
-def _artifacts_dir() -> Path:
-    # Always store DB under <ELI_ROOT>/artifacts unless overridden
-    root = _eli_root()
-    p = Path(os.environ.get("ELI_ARTIFACTS_DIR", str(root / "artifacts"))).expanduser().resolve()
-    p.mkdir(parents=True, exist_ok=True)
-    return p
-
-# Canonical DB path (override via ELI_MEMORY_DB)
+# Canonical DB path (override via ELI_MEMORY_INDEX_DB, or ELI_MEMORY_DB_PATH in tests)
 DB_PATH: Path = Path(
-    os.environ.get("ELI_MEMORY_DB", str(_artifacts_dir() / "eli_memory.sqlite3"))
+    os.environ.get("ELI_MEMORY_INDEX_DB") or os.environ.get("ELI_MEMORY_DB_PATH") or _default_db()
 ).expanduser().resolve()
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
@@ -95,10 +90,7 @@ def recall_recent(limit: int = 10, k=None) -> "Dict[str, Any]":
     except Exception:
         limit = 10
 
-    db_path = Path(os.environ.get(
-        "ELI_MEMORY_DB_PATH",
-        str(Path(__file__).resolve().parent.parent / "artifacts" / "eli_memory.sqlite3")
-    ))
+    db_path = Path(os.environ.get("ELI_MEMORY_DB_PATH") or DB_PATH)
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
     rows_out = []
@@ -376,7 +368,7 @@ def recall_recent(limit: int = 10, k=None) -> "Dict[str, Any]":
     except Exception:
         limit = 10
 
-    db_path = Path(os.environ.get("ELI_MEMORY_DB_PATH", str(Path(__file__).resolve().parent.parent / "artifacts" / "eli_memory.sqlite3")))
+    db_path = Path(os.environ.get("ELI_MEMORY_DB_PATH") or DB_PATH)
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
     rows_out = []
@@ -439,10 +431,7 @@ def _compat_sqlite_insert_memory(text: str, tags: str = "") -> dict:
     import sqlite3
     from pathlib import Path
 
-    db_path = Path(os.environ.get(
-        "ELI_MEMORY_DB_PATH",
-        str(Path(__file__).resolve().parent.parent / "artifacts" / "eli_memory.sqlite3")
-    ))
+    db_path = Path(os.environ.get("ELI_MEMORY_DB_PATH") or DB_PATH)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(db_path.as_posix())
     cur = con.cursor()

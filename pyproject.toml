@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eli-ai"
-version = "0.1.0"
+version = "0.1.1"
 description = "ELI (Entropic Logical Interpreter): a local AI assistant for Linux with a desktop window, memory and voice"
 readme = "README.md"
 license = {text = "Apache-2.0"}

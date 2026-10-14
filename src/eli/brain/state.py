@@ -5,7 +5,9 @@ import os
 from pathlib import Path
 from typing import Any, Dict
 
-_STATE_PATH = Path(os.environ.get("ELI_STATE_FILE", str(Path.home() / ".eli_state.json")))
+from eli.brain.paths import get_paths
+
+_STATE_PATH = Path(os.environ.get("ELI_STATE_FILE") or get_paths().data_dir / "state.json")
 
 def _load_state() -> Dict[str, Any]:
     try:

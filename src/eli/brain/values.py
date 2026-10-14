@@ -13,10 +13,11 @@ import json
 from pathlib import Path
 import os
 
-def _root() -> Path:
-    return Path(os.environ.get("ELI_ROOT") or Path(__file__).resolve().parents[1]).resolve()
+def _values_path() -> Path:
+    from eli.brain.paths import get_paths
+    return Path(os.environ.get("ELI_VALUES_PATH") or get_paths().config_dir / "values.json").expanduser()
 
-VALUES_PATH = (_root() / "eli_core" / "values.json").resolve()
+VALUES_PATH = _values_path()
 
 DEFAULTS: Dict[str, Any] = {
     "tone": "Brutally honest, nerdy, dry wit; adversarial for truth; dark shock-but-intelligent humor.",

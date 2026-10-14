@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-# Starts the ELI window from this folder (uses ./.venv when it is there).
+# Starts the ELI window from this folder (uses ./.venv when it is there), through the same launcher
+# as the AppImage: ELI keeps to its own folders (~/.local/share/eli-ai, ~/.config/eli-ai) and its own
+# settings (~/.config/eli-ai/settings or ELI_AI_... variables).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export ELI_PROJECT_ROOT="$ROOT"
-export ELI_ROOT="$ROOT/src/eli"
-export ELI_MEMORY_DB="${ELI_MEMORY_DB:-${XDG_DATA_HOME:-$HOME/.local/share}/eli/eli_memory.sqlite3}"
 export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 
 PY="${PYTHON:-python3}"
 [ -x "$ROOT/.venv/bin/python" ] && PY="$ROOT/.venv/bin/python"
-exec "$PY" -m eli.gui.app "$@"
+exec "$PY" "$ROOT/packaging/eli_app.py" "$@"

@@ -27,8 +27,9 @@ class CalendarPlugin(Plugin):
         path = config.get("calendar_ics_path")
         if path:
             return Path(path).expanduser()
-        # Default: ~/.config/eli/calendar.ics
-        default = Path.home() / ".config" / "eli" / "calendar.ics"
+        # Default: calendar.ics in ELI's config folder
+        from eli.brain.paths import get_paths
+        default = Path(get_paths().config_dir) / "calendar.ics"
         default.parent.mkdir(parents=True, exist_ok=True)
         if not default.exists():
             default.write_text("BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//ELI//EN\nEND:VCALENDAR\n")

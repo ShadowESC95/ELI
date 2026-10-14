@@ -643,8 +643,13 @@ class TestResponseSanitizer:
 # 12. FILE STRUCTURE
 # ============================================================================
 class TestFileStructure:
-    def test_artifacts_dir_exists(self):
-        assert (_ELI / "artifacts").is_dir()
+    def test_artifacts_dir_is_outside_the_code(self):
+        # ELI's code is read-only when packaged; what it writes goes to its own data folder
+        from eli.brain.paths import get_paths
+        p = get_paths()
+        for d in (p.artifacts_dir, p.conversations_dir, p.data_dir, p.config_dir):
+            assert _ELI.resolve() not in Path(d).resolve().parents, d
+            assert "eli-ai" in Path(d).parts or "ELI_DATA_DIR" in os.environ or "ELI_CONFIG_DIR" in os.environ, d
 
     def test_conversations_dir_exists(self):
         d = _ELI / "artifacts" / "conversations"
@@ -684,12 +689,11 @@ class TestFileStructure:
         src = p.read_text()
         assert "GENERATE_SCRIPT" in src and "FIX_FILE" in src
 
-    def test_run_eli_exports_env_vars(self):
-        sh = _ROOT / "run_eli.sh"
+    def test_run_eli_uses_the_launcher(self):
+        sh = _ROOT.parent / "run_eli.sh"  # _ROOT is src/; the script is at the repo root
         if not sh.exists():
             pytest.skip("run_eli.sh not found")
-        src = sh.read_text()
-        assert "ELI_MEMORY_DB" in src and "ELI_ROOT" in src
+        assert "packaging/eli_app.py" in sh.read_text()
 
 
 # ============================================================================

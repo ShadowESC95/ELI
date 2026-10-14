@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Any, List
 """
 Configuration manager for ELI – stores API keys and user preferences.
-Uses a simple JSON file in ELI's config folder (~/.config/eli/config.json).
+Uses a simple JSON file in ELI's config folder (~/.config/eli-ai/config.json).
 """
 
 import os
@@ -21,7 +21,7 @@ def _config_dir() -> Path:
     return get_paths().config_dir
 
 
-CONFIG_PATH = _config_dir() / "config.json"  # ~/.config/eli/config.json unless ELI_CONFIG_DIR is set
+CONFIG_PATH = _config_dir() / "config.json"  # ~/.config/eli-ai/config.json unless ELI_CONFIG_DIR is set
 
 def _ensure_config():
     CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)

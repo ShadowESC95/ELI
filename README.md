@@ -8,7 +8,7 @@ Everything runs on your machine: the model, speech recognition (Whisper, through
 
 ## Download
 
-The [releases page](https://github.com/ShadowESC95/ELI/releases) has a ready-to-run Linux AppImage and the model to run it. The rest of this page is for running it from source.
+The [releases page](https://github.com/ShadowESC95/ELI/releases) has a ready-to-run Linux AppImage with everything inside, including a small model (Qwen2.5 1.5B Instruct) and the speech model. The rest of this page is for running it from source.
 
 ## What you need
 
@@ -40,7 +40,7 @@ On Ubuntu or Debian, `src/eli/scripts/bootstrap_install.sh` does all of the abov
 
 ## Model
 
-Put a `.gguf` file in `~/.local/share/eli/models` (ELI uses the newest one there), or point to one:
+Put a `.gguf` file in `~/.local/share/eli-ai/models` (ELI uses the newest one there), or point to one:
 
 ```bash
 export ELI_GGUF_MODEL_PATH=/path/to/model.gguf
@@ -64,19 +64,19 @@ The tests never touch your desktop: volume, media, app and screenshot commands a
 
 ## Settings
 
-Set these in the environment (or in `~/.config/eli/config.json` where noted in the code).
+Put these in `~/.config/eli-ai/settings` as `KEY=VALUE` lines, or set them as variables named with `ELI_AI_` in place of `ELI_` (`ELI_AI_N_GPU_LAYERS=-1 ./run_eli.sh`). The AppImage and `./run_eli.sh` ignore plain `ELI_` variables, which other ELI versions use. ELI keeps its files in `~/.local/share/eli-ai` and `~/.config/eli-ai`, apart from every other ELI version.
 
 | Setting | Default | |
 |---|---|---|
 | `ELI_GGUF_MODEL_PATH` | newest `.gguf` in the models folder | the model file |
-| `ELI_MODELS_DIR` | `~/.local/share/eli/models` | where to look for models |
+| `ELI_MODELS_DIR` | `~/.local/share/eli-ai/models` | where to look for models |
 | `ELI_N_GPU_LAYERS` | `0` | layers on the graphics card; `-1` puts them all there |
 | `ELI_GGUF_N_CTX` | `16384` | context length |
 | `ELI_GGUF_CACHE_TYPE_K`, `ELI_GGUF_CACHE_TYPE_V` | model default | e.g. `q8_0` for a smaller cache |
 | `ELI_MODEL` | none | Ollama model for the side tools |
 | `OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | where Ollama is |
 | `ELI_USER_NAME` | none | what ELI calls you |
-| `ELI_DATA_DIR` | `~/.local/share/eli` | memory, notes, documents, models |
+| `ELI_DATA_DIR` | `~/.local/share/eli-ai` | memory, notes, documents, models |
 | `ELI_WHISPER`, `ELI_WHISPER_DEVICE` | `base`, `cpu` | speech recognition model size, and `cuda` for an NVIDIA card |
 | `ELI_TTS_ENGINE` | `espeak` | or `piper` with `ELI_PIPER_MODEL=/path/to/voice.onnx` |
 | `ELI_API_HOST`, `ELI_API_PORT` | `127.0.0.1`, `8081` | the API server; it can run actions, so keep it local |

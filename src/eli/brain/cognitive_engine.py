@@ -34,6 +34,12 @@ from .persona import persona_file
 
 _PERSONA_FILE = persona_file()
 
+
+def _no_model_message() -> str:
+    from .paths import get_paths
+    return (f"No model found. Put a .gguf model file in {get_paths().models_dir} or in the same folder as the "
+            "ELI AppImage (or set ELI_GGUF_MODEL_PATH to one), then restart ELI.")
+
 def _clean_persona(raw: str) -> str:
     """Strip Ollama Modelfile directives (PARAMETER, TEMPLATE, FROM) that
     pollute the GGUF system prompt and waste context tokens."""
@@ -78,12 +84,14 @@ class CognitiveEngine:
     
     def _get_user_id(self) -> str:
         """Load or create persistent user ID."""
-        user_id_file = Path.home() / '.eli_user_id'
+        from .paths import get_paths
+        user_id_file = Path(get_paths().config_dir) / "user_id"
         if user_id_file.exists():
             return user_id_file.read_text().strip()
         else:
             import uuid
             user_id = str(uuid.uuid4())
+            user_id_file.parent.mkdir(parents=True, exist_ok=True)
             user_id_file.write_text(user_id)
             return user_id
     
@@ -318,8 +326,7 @@ class CognitiveEngine:
         if not self._gguf_available:
             self._init_gguf()
             if not self._gguf_available:
-                return ("No model found. Put a .gguf file in ELI's models folder (~/.local/share/eli/models) "
-                    "or set ELI_GGUF_MODEL_PATH, then restart ELI.")
+                return _no_model_message()
         
         try:
             from . import gguf_inference
@@ -378,8 +385,7 @@ class CognitiveEngine:
         if not self._gguf_available:
             self._init_gguf()
             if not self._gguf_available:
-                yield ("No model found. Put a .gguf file in ELI's models folder (~/.local/share/eli/models) "
-                    "or set ELI_GGUF_MODEL_PATH, then restart ELI.")
+                yield _no_model_message()
                 return
 
         from . import gguf_inference

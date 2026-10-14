@@ -43,7 +43,7 @@ def search_memory_compat(query: str = "", limit: int = 10, q: str = "", k: int =
 def _repo_root():
     try:
         from pathlib import Path
-        return Path(__file__).resolve().parents[1]  # repo_root/eli_tools/executor_enhancedMKII.py
+        return Path(__file__).resolve().parents[1]  # the eli package (read-only when ELI is packaged)
     except Exception:
         return None
 
@@ -51,10 +51,8 @@ def _convlog_path():
     try:
         from pathlib import Path
         from datetime import datetime
-        root = _repo_root()
-        if root is None:
-            return None
-        d = Path(root) / "artifacts" / "conversations"
+        from eli.brain.paths import get_paths
+        d = Path(get_paths().conversations_dir)
         d.mkdir(parents=True, exist_ok=True)
         fn = datetime.utcnow().strftime("%Y%m%d") + ".jsonl"
         return d / fn
@@ -92,7 +90,7 @@ def _get_memory_path():
         from eli.brain.paths import get_paths
         return Path(get_paths().memory_db)
     except Exception:
-        default = str(Path.home() / ".eli_memory.sqlite3")
+        default = str(Path.home() / ".local" / "share" / "eli-ai" / "eli_memory.sqlite3")
         return Path(os.environ.get("ELI_MEMORY_FILE", default))
 
 def _sqlite_init(conn):
@@ -457,13 +455,15 @@ SUPPORTED_ACTIONS = ['CHAT', 'STOP_MEDIA', 'PAUSE_MEDIA', 'PLAY_MEDIA', 'NEXT_ME
                      'TIME', 'DATE']
 
 
-STATE_PATH = Path(os.environ.get("ELI_STATE_FILE", str(Path.home() / ".eli_state.json")))
+from eli.brain.paths import get_paths as _get_paths
+
+STATE_PATH = Path(os.environ.get("ELI_STATE_FILE") or _get_paths().data_dir / "state.json")
 
 # Short-term conversation continuity
 MAX_HISTORY_MESSAGES = int(os.environ.get("ELI_MAX_HISTORY_MESSAGES", "32"))
 
 # Long-term memory store (simple deterministic archive, no embeddings)
-MEMORY_PATH = Path(os.environ.get("ELI_MEMORY_FILE", str(Path.home() / ".eli_memory.jsonl")))
+MEMORY_PATH = Path(os.environ.get("ELI_MEMORY_FILE") or _get_paths().data_dir / "memory.jsonl")
 
 # Lock behavior: if true, refuse CHAT when verification fails
 LOCK_ENFORCED = os.environ.get("ELI_LOCK_ENFORCED", "1").strip() not in ("0", "false", "False", "no", "NO")
@@ -1005,15 +1005,17 @@ def _live_memory_audit() -> dict:
     """
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
-    root = Path(__file__).resolve().parents[3]  # .../AI_EliMKVI
+    from eli.brain.paths import get_paths
+    _p = get_paths()
+    root = _p.data_dir
     candidates = {
-        "root_artifacts_db": root / "artifacts" / "eli_memory.sqlite3",
-        "src_artifacts_db": root / "src" / "eli" / "artifacts" / "eli_memory.sqlite3",
-        "conversations_dir": root / "src" / "eli" / "artifacts" / "conversations",
-        "proactive_dir": root / "artifacts" / "proactive",
-        "src_latest_context": root / "artifacts" / "latest_context.txt",
-        "src_latest_summary": root / "artifacts" / "latest_summary.txt",
-        "src_latest_action": root / "artifacts" / "latest_action.txt",
+        "root_artifacts_db": _p.memory_db,
+        "src_artifacts_db": _p.agent_db,
+        "conversations_dir": _p.conversations_dir,
+        "proactive_dir": _p.proactive_dir,
+        "src_latest_context": _p.artifacts_dir / "latest_context.txt",
+        "src_latest_summary": _p.artifacts_dir / "latest_summary.txt",
+        "src_latest_action": _p.artifacts_dir / "latest_action.txt",
     }
 
     report = {
@@ -1717,8 +1719,8 @@ def _eli_tts_echo(_text: str) -> None:
             from pathlib import Path
             import json
             from datetime import datetime
-            root = Path(__file__).resolve().parent
-            logp = root / "data" / "logs" / "tts.jsonl"
+            from eli.brain.paths import get_paths
+            logp = Path(get_paths().log_dir) / "tts.jsonl"
             logp.parent.mkdir(parents=True, exist_ok=True)
             rec = {"ts": datetime.now().isoformat(timespec="seconds"), "text": _text}
             with open(logp, "a", encoding="utf-8") as f:
@@ -1783,8 +1785,8 @@ def _speak_raw(text: str) -> None:
         print(f"[ELI-SAY] {t}", flush=True)
         if os.environ.get("ELI_TTS_LOG", "1") != "0":
             try:
-                root = Path(__file__).resolve().parent
-                logp = root / "data" / "logs" / "tts.jsonl"
+                from eli.brain.paths import get_paths
+                logp = Path(get_paths().log_dir) / "tts.jsonl"
                 logp.parent.mkdir(parents=True, exist_ok=True)
                 rec = {"ts": datetime.now().isoformat(timespec="seconds"), "text": t}
                 logp.open("a", encoding="utf-8").write(json.dumps(rec, ensure_ascii=False)+"\n")
@@ -2222,7 +2224,8 @@ def _builtin_create_doc(args: dict) -> dict:
 
         ext = doc_type if doc_type in {"md","txt","tex"} else "txt"
 
-        outdir = Path(os.environ.get("ELI_DOC_DIR", str(Path(__file__).resolve().parent.parent / "eli_docs"))).expanduser()
+        from eli.brain.paths import get_paths
+        outdir = Path(os.environ.get("ELI_DOC_DIR") or Path(get_paths().artifacts_dir) / "docs").expanduser()
         outdir.mkdir(parents=True, exist_ok=True)
 
         if filename:
@@ -2252,8 +2255,8 @@ def _write_note_builtin(args: dict) -> dict:
         import os, re, time, subprocess
         from pathlib import Path
 
-        root = Path(__file__).resolve().parent.parent
-        doc_dir = Path(os.environ.get("ELI_DOC_DIR", str(root / "eli_docs"))).expanduser()
+        from eli.brain.paths import get_paths
+        doc_dir = Path(os.environ.get("ELI_DOC_DIR") or Path(get_paths().artifacts_dir) / "docs").expanduser()
         doc_dir.mkdir(parents=True, exist_ok=True)
 
         if not filename:
@@ -2300,8 +2303,8 @@ def _append_note_builtin(args: dict) -> dict:
         import os, re, time, subprocess
         from pathlib import Path
 
-        root = Path(__file__).resolve().parent.parent
-        doc_dir = Path(os.environ.get("ELI_DOC_DIR", str(root / "eli_docs"))).expanduser()
+        from eli.brain.paths import get_paths
+        doc_dir = Path(os.environ.get("ELI_DOC_DIR") or Path(get_paths().artifacts_dir) / "docs").expanduser()
         doc_dir.mkdir(parents=True, exist_ok=True)
 
         note_file = None
@@ -2457,14 +2460,14 @@ def _calendar_event_builtin(args: dict) -> dict:
 
 
 def _recall_memory_builtin(args: dict) -> dict:
-    """Read recent utterances from ./data/memory/utterances.jsonl (if present)."""
+    """Read recent utterances from utterances.jsonl in ELI's data folder (if present)."""
     try:
         import json
         from pathlib import Path
 
         limit = int(args.get("limit", 20))
-        root = Path(__file__).resolve().parent.parent
-        memory_log = root / "data" / "memory" / "utterances.jsonl"
+        from eli.brain.paths import get_paths
+        memory_log = Path(get_paths().data_dir) / "memory" / "utterances.jsonl"
 
         if not memory_log.exists():
             return {"ok": True, "entries": [], "message": "No memory log found"}

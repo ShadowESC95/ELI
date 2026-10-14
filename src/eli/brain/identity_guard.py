@@ -7,7 +7,8 @@ from pathlib import Path
 
 def _get_lock_path():
     """Get the path to the lock file."""
-    lock_dir = Path.home() / ".local" / "share" / "eli"
+    from eli.brain.paths import get_paths
+    lock_dir = Path(get_paths().data_dir)
     lock_dir.mkdir(parents=True, exist_ok=True)
     return lock_dir / "persona_lock.json"
 

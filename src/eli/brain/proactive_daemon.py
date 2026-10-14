@@ -463,8 +463,9 @@ def _maybe_update_persona_from_db():
     _LAST_PERSONA_UPDATE = now
 
     try:
-        script = Path(os.environ.get("ELI_ROOT", str(Path(__file__).resolve().parents[2]))) / "scripts" / "persona_autoupdate_from_db.py"
-        if not script.exists():
+        import importlib.util
+        module = "eli.scripts.persona_autoupdate_from_db"
+        if importlib.util.find_spec(module) is None:
             return
 
         env = dict(os.environ)
@@ -473,7 +474,8 @@ def _maybe_update_persona_from_db():
         paths = resolve_db_paths()
         env.setdefault("ELI_DB_PATH", str(paths.agent_db))
 
-        subprocess.run([sys.executable, str(script)], env=env, check=False,
+        # `-m` works with Python and with the packaged app, whose launcher runs the module the same way
+        subprocess.run([sys.executable, "-m", module], env=env, check=False,
                        capture_output=True, text=True)
     except Exception:
         return

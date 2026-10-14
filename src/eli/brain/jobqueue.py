@@ -8,8 +8,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-ROOT = Path(__file__).resolve().parent.parent
-JOBS_DIR = ROOT / "artifacts" / "jobs"
+from eli.brain.paths import get_paths
+
+JOBS_DIR = Path(get_paths().artifacts_dir) / "jobs"
 DB_PATH = JOBS_DIR / "jobs.sqlite"
 
 def _db() -> sqlite3.Connection:

@@ -23,6 +23,9 @@ datas += [(str(ROOT / "LICENSE"), ".")]
 whisper = ROOT / "build" / "whisper-base"  # the speech model, so voice works offline
 if whisper.is_dir():
     datas.append((str(whisper), "whisper-base"))
+models = ROOT / "build" / "models"  # the language model ELI ships with, so the app works on its own
+if models.is_dir() and any(models.glob("*.gguf")):
+    datas.append((str(models), "models"))
 
 a = Analysis(
     [str(ROOT / "packaging" / "eli_app.py")],
