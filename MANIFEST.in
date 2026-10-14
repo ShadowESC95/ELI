@@ -1,0 +1,3 @@
+include README.md LICENSE requirements.txt
+include src/eli/brain/persona.txt
+recursive-include src/eli/modelfiles *.Modelfile

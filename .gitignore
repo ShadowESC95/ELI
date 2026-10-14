@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv*/
+venv/
+.pytest_cache/
+build/
+dist/
+
+# settings and your own data
+.env
+_private/
+artifacts/
+logs/
+src/eli/artifacts/
+src/eli/models/*.gguf
+src/eli/voices/
+src/eli/inputs_for_analysis/*
+!src/eli/inputs_for_analysis/.gitkeep
+*.sqlite3
+*.sqlite3-*
+
+eli_notebook/
