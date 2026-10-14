@@ -1,9 +1,11 @@
 # PyInstaller recipe for the ELI app. From the repo root: pyinstaller packaging/eli.spec
+import sys
 from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_submodules
 
 ROOT = Path(SPECPATH).parent
+sys.path.insert(0, str(ROOT / "src"))  # the collect_* helpers below must be able to import eli
 
 datas, binaries, hiddenimports = [], [], []
 for package in ("llama_cpp", "faster_whisper", "ctranslate2", "onnxruntime", "av", "tokenizers",
@@ -19,6 +21,8 @@ skip = ("eli.tests", "eli.conftest", "eli.conftest_fixes", "eli.tools.eli_listen
 hiddenimports += collect_submodules("eli", filter=lambda name: not name.startswith(skip))
 hiddenimports += ["pyaudio", "pypdf", "numpy", "requests", "platformdirs", "fastapi", "pydantic"]
 datas += collect_data_files("eli", excludes=["tests/**", "artifacts/**", "voices/**", "models/**"])
+if not any(dest.replace("\\", "/") == "eli/brain" and src.endswith("persona.txt") for src, dest in datas):
+    raise SystemExit("ELI's persona (eli/brain/persona.txt) was not collected into the bundle")
 datas += [(str(ROOT / "LICENSE"), ".")]
 whisper = ROOT / "build" / "whisper-base"  # the speech model, so voice works offline
 if whisper.is_dir():
