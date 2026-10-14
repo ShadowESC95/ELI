@@ -30,7 +30,9 @@ except Exception:
 # ============================================================
 # LOAD PERSONA FROM persona.txt (cleaned of Ollama directives)
 # ============================================================
-_PERSONA_FILE = Path(__file__).parent / "persona.txt"
+from .persona import persona_file
+
+_PERSONA_FILE = persona_file()
 
 def _clean_persona(raw: str) -> str:
     """Strip Ollama Modelfile directives (PARAMETER, TEMPLATE, FROM) that

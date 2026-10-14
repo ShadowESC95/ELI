@@ -6,6 +6,10 @@ It has a desktop window with chat, memory, habits, self-improvement and a small 
 
 Everything runs on your machine: the model, speech recognition (Whisper, through faster-whisper) and memory. The first time you use the microphone, the Whisper model is downloaded once from Hugging Face.
 
+## Download
+
+The [releases page](https://github.com/ShadowESC95/ELI/releases) has a ready-to-run Linux AppImage and the model to run it. The rest of this page is for running it from source.
+
 ## What you need
 
 - Linux (X11 or Wayland)

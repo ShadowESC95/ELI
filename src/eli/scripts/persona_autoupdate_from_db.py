@@ -8,7 +8,9 @@ from datetime import datetime
 from eli.brain.paths import PATHS
 
 ROOT = Path(__file__).resolve().parents[1]
-PERSONA = ROOT / "brain" / "persona.txt"
+from eli.brain.persona import persona_file
+
+PERSONA = persona_file(for_writing=True)  # this user's copy, not the one ELI ships with
 LOGS = Path(PATHS.log_dir)
 LOGS.mkdir(parents=True, exist_ok=True)
 

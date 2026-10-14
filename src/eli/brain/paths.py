@@ -80,6 +80,15 @@ class EliPaths:
             found = []
         if found:
             return found[0]
+        # Running as an AppImage: a model saved in the same folder as the AppImage
+        appimage = os.environ.get("APPIMAGE")
+        if appimage:
+            try:
+                beside = sorted(Path(appimage).parent.glob("*.gguf"), key=lambda f: f.stat().st_mtime, reverse=True)
+            except OSError:
+                beside = []
+            if beside:
+                return beside[0]
         return self.models_dir / "model.gguf"
 
 

@@ -20,8 +20,8 @@ def _project_root() -> Path:
 
 
 def _persona_block(root: Path) -> str:
-    persona_path = root / "brain" / "persona.txt"
-    persona = _read_text(persona_path)
+    from eli.brain.persona import persona_file
+    persona = _read_text(persona_file())
     if not persona:
         persona = "You are ELI (Enhanced Learning Interface), the user's AI OS assistant. Be accurate, useful, and honest."
     return "=== ELI PERSONA ===\n" + persona
